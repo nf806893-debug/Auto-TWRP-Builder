@@ -114,6 +114,28 @@ jobs:
           echo "Found Android.bp at $TARGET_BP. Stripping out unsupported soong_namespace..."
           sed -i '/soong_namespace {/,/}/d' "$TARGET_BP"
         fi
+        
+        # --- TWRP SIZE OPTIMIZATION PATCH ---
+        TARGET_BC="$(find device/lenovo/TB7104F -name 'BoardConfig.mk' 2>/dev/null | head -n 1)"
+        if [ -f "$TARGET_BC" ]; then
+          echo "Found BoardConfig.mk at $TARGET_BC. Injecting size-reduction flags..."
+          cat << 'EOF' >> "$TARGET_BC"
+
+# Extreme Size Optimization Flags
+TW_INCLUDE_CRYPTO := false
+TW_EXCLUDE_SUPERSU := true
+TW_EXCLUDE_MTP := true
+TW_NO_EXFAT := true
+TW_NO_EXFAT_FUSE := true
+DISABLE_VNDK_VERSION_CHECK := true
+BUILD_EMULATOR_OPENGL := false
+NUM_FRAMEBUFFERS := 1
+TW_BRIGHTNESS_PATH := ""
+TW_MAX_BRIGHTNESS := 255
+TW_NO_REBOOT_BOOTLOADER := true
+TW_EXCLUDE_DEFAULT_USB_INIT := true
+EOF
+        fi
         # ---------------------------------------------------------
       working-directory: ${{ steps.pwd.outputs.workspace-folder }}
       id: gdt
